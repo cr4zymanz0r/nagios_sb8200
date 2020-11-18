@@ -25,7 +25,7 @@ if (conn_type == 'http'):
 	try:
 			html = urllib2.urlopen(url).read()
 	except:
-			print "WARNING: Unable to read from URL"
+			print "WARNING: Unable to read from HTTP URL"
 			exit(1)
 elif (conn_type == 'https'):
 	username = config['username']
@@ -49,16 +49,16 @@ elif (conn_type == 'https'):
 			request2 = session2.get('https://192.168.100.1/cmconnectionstatus.html', verify=False)
 			html = request2.text
 	except:
-			print "WARNING: Unable to read from URL"
+			print "WARNING: Unable to read from HTTPS URL"
 			exit(1)
 	
 	session3 = requests.Session()
 	try:
-        session3.get('https://192.168.100.1/logout.html', verify=False)
-    except:
-        pass
+			session3.get('https://192.168.100.1/logout.html', verify=False)
+	except:
+			pass
 		
-soup = BeautifulSoup(html)
+soup = BeautifulSoup(html, 'lxml')
 table = soup.find_all('table')
 	
 
