@@ -1,18 +1,66 @@
 #!/usr/bin/python
 
 from bs4 import BeautifulSoup
+import os
+import os.path
+import requests
+import base64
+import json
 import urllib2
+import urllib3
 import sys
 
 influx = 'influx' in sys.argv
-url = 'http://192.168.100.1/cmconnectionstatus.html'
-try:
-        html = urllib2.urlopen(url).read()
-except:
-        print "WARNING: Unable to read from URL"
-        exit(1)
+
+cfg_name = 'config.json'
+
+with open(cfg_name) as configfile:
+	config_text = configfile.read()
+	
+config = json.loads(config_text)
+conn_type = config['conn_type']
+
+if (conn_type == 'http'):
+	url = 'http://192.168.100.1/cmconnectionstatus.html'
+	try:
+			html = urllib2.urlopen(url).read()
+	except:
+			print "WARNING: Unable to read from URL"
+			exit(1)
+elif (conn_type == 'https'):
+	username = config['username']
+	password = config['password']
+	
+	message = username + ':' + password
+	message_bytes = message.encode('ascii')
+	base64_bytes = base64.b64encode(message_bytes)
+	cm_cred = base64_bytes.decode('ascii')
+	urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+	session1 = requests.Session()
+	session1.headers.update({'Cookie': 'HttpOnly: true, Secure: true'})
+	session1.headers.update({'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'})
+	session1.headers.update({'Authorization': 'Basic ' + cm_cred})
+	
+	request1 = session1.get('https://192.168.100.1/cmconnectionstatus.html?' + cm_cred, verify=False)
+	
+	session2 = requests.Session()
+	session2.headers.update({'Cookie': 'HttpOnly: true, Secure: true; credential=' + request1.text})
+	try:
+			request2 = session2.get('https://192.168.100.1/cmconnectionstatus.html', verify=False)
+			html = request2.text
+	except:
+			print "WARNING: Unable to read from URL"
+			exit(1)
+	
+	session3 = requests.Session()
+	try:
+        session3.get('https://192.168.100.1/logout.html', verify=False)
+    except:
+        pass
+		
 soup = BeautifulSoup(html)
 table = soup.find_all('table')
+	
 
 # Define sections
 
