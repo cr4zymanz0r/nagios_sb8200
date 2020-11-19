@@ -160,7 +160,7 @@ if status == "OK:":
 		if sql:
 			sqlconnection.commit()
 			sqlconnection.close()
-
-        exit(0)
+			
+		exit(0)
 else:
-        exit(2)
+	exit(2)
