@@ -5,5 +5,5 @@ set -ex
 while true
 do
 	./root/check_sb8200.py sql
-	sleep $interval
+	sleep $INTERVAL
 done

@@ -4,7 +4,7 @@ COPY /install-sb8200.sh /root/
 RUN /bin/bash /root/install-sb8200.sh
 
 #seconds
-ARG interval=60
+ENV INTERVAL=60
 
 COPY check_sb8200.py /root/
 RUN chmod +x /root/check_sb8200.py
