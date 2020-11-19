@@ -52,7 +52,7 @@ elif (conn_type == 'https'):
 			html = request2.text
 	except:
 			print "WARNING: Unable to read from HTTPS URL"
-			exit(1)
+			exit(0) #was 1, set to 0 so docker image won't quit on failure
 	
 	session3 = requests.Session()
 	try:
@@ -80,12 +80,12 @@ startDetail = startrows[3:]
 downrows = downstream.find_all('tr')
 downTitle = downrows[0].find('th').string
 downHead = downrows[1].find_all('strong')
-downChannel = downrows[2:]
+downChannel = downrows[1:]
 
 uprows = upstream.find_all('tr')
 upTitle = uprows[0].find('th').string
 upHead = uprows[1].find_all('strong')
-upChannel = uprows[2:]
+upChannel = uprows[1:]
 
 # Get SQL connection info and connect
 if sql:
