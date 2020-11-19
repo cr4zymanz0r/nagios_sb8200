@@ -2,4 +2,8 @@
 
 set -ex
 
-sleep 100000000
+while true
+do
+	./root/check_sb8200.py sql
+	sleep $interval
+done

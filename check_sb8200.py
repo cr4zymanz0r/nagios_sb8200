@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from bs4 import BeautifulSoup
+from datetime import datetime
 import os
 import os.path
 import requests
@@ -9,10 +10,11 @@ import json
 import urllib2
 import urllib3
 import sys
+import mysql.connector
 
-influx = 'influx' in sys.argv
+sql = 'sql' in sys.argv
 
-cfg_name = 'config.json'
+cfg_name = '/root/config/config.json'
 
 with open(cfg_name) as configfile:
 	config_text = configfile.read()
@@ -85,6 +87,19 @@ upTitle = uprows[0].find('th').string
 upHead = uprows[1].find_all('strong')
 upChannel = uprows[2:]
 
+# Get SQL connection info and connect
+if sql:
+	timenow = datetime.now()
+	dbhost = config['dbhost']
+	dbuser = config['dbuser']
+	dbpass = config['dbpass']
+
+	sqlconnection = mysql.connector.connect(user=dbuser, password=dbpass, host=dbhost, database='sb8200')
+	cursor = sqlconnection.cursor()
+	add_downlink = ("INSERT INTO ModemDownlink (channel, power, snr, corrected, uncorrected, datetime) VALUES (%s, %s, %s, %s, %s, %s)")
+	add_uplink = ("INSERT INTO ModemUplink (channel, power, datetime) VALUES (%s, %s, %s)")
+	#downlink_data = ('5', '7.2', '43.2', '1', '0', timenow)
+
 # Status
 
 for i in range(len(startDetail)):
@@ -101,7 +116,7 @@ for i in range(len(startDetail)):
         else:
                 status = "CRITICAL:"
                 break
-if not influx:
+if not sql:
 	print status, startProc, startStat,
 	print "|",
 
@@ -114,29 +129,38 @@ for i in range(len(downChannel)):
         dChSNR = dChData[5].string.split()
         dChCorr = dChData[6].string
         dChUncorr = dChData[7].string
-	if not influx:
+	if not sql:
         	print "d_" + dChNum + "_pow=" + dChPow[0],
         	print "d_" + dChNum + "_snr=" + dChSNR[0],
         	print "d_" + dChNum + "_corr=" + dChCorr,
         	print "d_" + dChNum + "_uncorr=" + dChUncorr,
 	else:
-		print "downlink_channel,interface=" + str(i) + " value="+dChNum
-		print "downlink_power,interface=" + str(i) + " value="+dChPow[0]
-                print "downlink_snr,interface=" + str(i) + " value="+ dChSNR[0]
-                print "downlink_corrected,interface=" + str(i) + " value="+ dChCorr
-		print "downlink_uncorrected,interface=" + str(i) + " value="+dChUncorr
+		#print "downlink_channel,interface=" + str(i) + " value="+dChNum
+		#print "downlink_power,interface=" + str(i) + " value="+dChPow[0]
+                #print "downlink_snr,interface=" + str(i) + " value="+ dChSNR[0]
+                #print "downlink_corrected,interface=" + str(i) + " value="+ dChCorr
+		#print "downlink_uncorrected,interface=" + str(i) + " value="+dChUncorr
+		downlink_data = (dChNum, dChPow[0], dChSNR[0], dChCorr, dChUncorr, timenow)
+		cursor.execute(add_downlink, downlink_data)
+		
 for i in range(len(upChannel)):
 	uChData = upChannel[i].find_all('td')
         uChNum = uChData[1].string
         uChPow = uChData[6].string.split()
-        if not influx:
+        if not sql:
         	print "u_" + uChNum + "_pow=" + uChPow[0],
 	else:
-		print "uplink_channel,interface="+ str(i) + " value=" + uChNum
-                print "uplink_power,interface="+ str(i) + " value=" + uChPow[0]
+		#print "uplink_channel,interface="+ str(i) + " value=" + uChNum
+                #print "uplink_power,interface="+ str(i) + " value=" + uChPow[0]
+		uplink_data = (uChNum, uChPow[0], timenow)
+		cursor.execute(add_uplink, uplink_data)
 # Exit Statuses
 
 if status == "OK:":
+		if sql:
+			sqlconnection.commit()
+			sqlconnection.close()
+
         exit(0)
 else:
         exit(2)
