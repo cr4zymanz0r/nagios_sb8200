@@ -27,7 +27,7 @@ if (conn_type == 'http'):
 	try:
 		html = urllib.request.urlopen(url).read()
 	except:
-		print "WARNING: Unable to read from HTTP URL"
+		print("WARNING: Unable to read from HTTP URL")
 		exit(1)
 elif (conn_type == 'https'):
 	username = config['username']
@@ -51,7 +51,7 @@ elif (conn_type == 'https'):
 		request2 = session2.get('https://192.168.100.1/cmconnectionstatus.html', verify=False)
 		html = request2.text
 	except:
-		print "WARNING: Unable to read from HTTPS URL"
+		print("WARNING: Unable to read from HTTPS URL")
 		exit(0) #was 1, set to 0 so docker image won't quit on failure
 	
 	session3 = requests.Session()
@@ -116,8 +116,8 @@ for i in range(len(startDetail)):
 		status = "CRITICAL:"
 		break
 if not sql:
-	print status, startProc, startStat,
-	print "|",
+	print(status, startProc, startStat, end="")
+	print("|", end="")
 
 # Perfdata
 
@@ -130,10 +130,10 @@ for i in range(len(downChannel)):
 	dChUncorr = dChData[7].string
 
 	if not sql:
-		print "d_" + dChNum + "_pow=" + dChPow[0],
-		print "d_" + dChNum + "_snr=" + dChSNR[0],
-		print "d_" + dChNum + "_corr=" + dChCorr,
-		print "d_" + dChNum + "_uncorr=" + dChUncorr,
+		print("d_" + dChNum + "_pow=" + dChPow[0], end="")
+		print("d_" + dChNum + "_snr=" + dChSNR[0], end="")
+		print("d_" + dChNum + "_corr=" + dChCorr, end="")
+		print("d_" + dChNum + "_uncorr=" + dChUncorr, end="")
 	else:
 		#print "downlink_channel,interface=" + str(i) + " value="+dChNum
 		#print "downlink_power,interface=" + str(i) + " value="+dChPow[0]
@@ -148,7 +148,7 @@ for i in range(len(upChannel)):
 	uChNum = uChData[1].string
 	uChPow = uChData[6].string.split()
 	if not sql:
-		print "u_" + uChNum + "_pow=" + uChPow[0],
+		print("u_" + uChNum + "_pow=" + uChPow[0], end="")
 	else:
 		#print "uplink_channel,interface="+ str(i) + " value=" + uChNum
 		#print "uplink_power,interface="+ str(i) + " value=" + uChPow[0]
